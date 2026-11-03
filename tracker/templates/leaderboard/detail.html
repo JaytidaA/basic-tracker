@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+  .panel { border-radius: .5rem; padding: 1rem; }
+  .panel h2 { margin: 0 0 .5rem; font-size: 1.1rem; }
+  .panel ul { list-style: none; margin: 0; padding: 0; }
+  .panel li { padding: .25rem 0; }
+  .standing { background: #d9f2d0; color: #1c3d13; }
+  .failed { background: #8b1a1a; color: #fff; }
+  .failed small { opacity: .8; }
+
+  .cal { border-collapse: separate; border-spacing: 4px; width: 100%; table-layout: fixed; }
+  .cal th { border: 0; text-align: center; font-size: .8rem; color: #666; }
+  .cal td { border: 0; padding: 0; }
+  .day { position: relative; aspect-ratio: 1; background: #fff; border: 1px solid #ccc;
+         border-radius: 4px; padding: .25rem; font-size: .8rem; }
+  .day.off { background: #f3f3f3; color: #aaa; border-color: #eee; }
+  .day.hit { background: #6b2d1f; border-color: #6b2d1f; color: #fff; cursor: default; }
+  .tip { display: none; position: absolute; z-index: 10; bottom: 105%; left: 50%;
+         transform: translateX(-50%); width: 14rem; background: #222; color: #fff;
+         padding: .5rem .75rem; border-radius: .4rem; font-size: .85rem; text-align: left;
+         box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+  .tip hr { border: 0; border-top: 1px solid #555; margin: .4rem 0; }
+  .day.hit:hover .tip, .day.hit:focus .tip { display: block; }
+  .col-1 .tip, .col-2 .tip { left: 0; transform: none; }
+  .col-6 .tip, .col-7 .tip { left: auto; right: 0; transform: none; }
+</style>
+
+<h1>{{ tracking.name }}</h1>
+<p><a href="{% url 'leaderboard:add' tracking.pk %}">Add entry</a></p>
+
+{% if tracking.kind == "elim" %}
+
+  {% for month in months %}
+    <h2>{{ month.label|date:"F Y" }}</h2>
+    <table class="cal">
+      <tr>{% for d in "MTWTFSS" %}<th>{{ d }}</th>{% endfor %}</tr>
+      {% for week in month.weeks %}
+        <tr>
+          {% for cell in week %}
+            <td>
+              {% if cell.in_month %}
+                <div class="day col-{{ forloop.counter }}{% if not cell.in_range %} off{% endif %}{% if cell.entries %} hit{% endif %}"
+                     {% if cell.entries %}tabindex="0"{% endif %}>
+                  {{ cell.date.day }}
+                  {% if cell.entries %}
+                    <div class="tip">
+                      {% for e in cell.entries %}
+                        <strong>{{ e.user.username }}</strong> &middot; {{ e.occurred_at|date:"g:i a" }}<br>
+                        {{ e.details|default:"No details"|linebreaksbr }}
+                        {% if not forloop.last %}<hr>{% endif %}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+  {% endfor %}
+
+  <div class="split">
+    <section class="panel standing">
+      <h2>Still standing ({{ standing|length }})</h2>
+      <ul>
+        {% for u in standing %}<li>{{ u.username }}</li>{% empty %}<li>Nobody.</li>{% endfor %}
+      </ul>
+    </section>
+    <section class="panel failed">
+      <h2>Failed ({{ out|length }})</h2>
+      <ul>
+        {% for u in out %}
+          <li>{{ u.username }} <small>{{ u.out_at|date:"j M" }}</small></li>
+        {% empty %}<li>Nobody yet.</li>{% endfor %}
+      </ul>
+    </section>
+  </div>
+
+{% else %}
+
+  <table>
+    <tr><th>#</th><th>Name</th><th>Total</th></tr>
+    {% for u in rows %}
+      <tr {% if u == request.user %}class="me"{% endif %}>
+        <td>{{ forloop.counter }}</td><td>{{ u.username }}</td><td>{{ u.score }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  <h2>Activity</h2>
+  <table>
+    <tr><th>When</th><th>Who</th><th>Value</th><th>Details</th></tr>
+    {% for e in entries %}
+      <tr>
+        <td>{{ e.occurred_at|date:"j M, g:i a" }}</td>
+        <td>{{ e.user.username }}</td>
+        <td>{{ e.value }}</td>
+        <td>{{ e.details|default:"—"|linebreaksbr }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">No entries yet.</td></tr>
+    {% endfor %}
+  </table>
+
+{% endif %}
+{% endblock %}

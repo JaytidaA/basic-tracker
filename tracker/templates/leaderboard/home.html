@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; }
+  .card { display: flex; flex-direction: column; justify-content: center; gap: .35rem;
+          height: 8rem; padding: 1rem 1.25rem; border: 1px solid #ddd; border-radius: .75rem;
+          color: #222; text-decoration: none; box-sizing: border-box; overflow: hidden;
+          transition: transform .1s, box-shadow .1s; }
+  a.card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+  .card.elim { background: linear-gradient(to bottom right, #ffffff, #fffbe6); }
+  .card.sum  { background: linear-gradient(to bottom right, #ffffff, #eaf3ff); }
+  .card.empty { grid-column: 1 / -1; align-items: center; color: #666; background: #fafafa; }
+  .card-name { font-size: 1.15rem; font-weight: 600; white-space: nowrap;
+               overflow: hidden; text-overflow: ellipsis; }
+  .card-meta { font-size: .9rem; color: #444; white-space: nowrap;
+               overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<h1>Currently tracking</h1>
+<div class="cards">
+  {% for t in trackings %}
+    <a class="card {{ t.kind }}" href="{% url 'leaderboard:detail' t.pk %}" title="{{ t.name }} ({{ t.get_kind_display }})">
+      <div class="card-name">{{ t.name }}</div>
+      <div class="card-meta">Start: {{ t.start_date|date:"Y-m-d" }}</div>
+      <div class="card-meta">End: {{ t.end_date|date:"Y-m-d"|default:"—" }}</div>
+    </a>
+  {% empty %}
+    <div class="card empty">
+      <div class="card-name">No current entries</div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
