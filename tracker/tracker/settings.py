@@ -12,23 +12,30 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['BASIC_TRACKER_SECRET_KEY']
+SECRET_KEY = os.environ.get('BASIC_TRACKER_SECRET_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('BASIC_TRACKER_DEBUG') == "1"
 
-ALLOWED_HOSTS = [ "aadityajoil.pythonanywhere.com" ]
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "dev-only-insecure-key"
+    else:
+        raise RuntimeError("SECRET_KEY is not set")
 
-CSRF_TRUSTED_ORIGINS = [ "https://aadityajoil.pythonanywhere.com" ]
+ALLOWED_HOSTS = os.environ.get("BASIC_TRACKER_ALLOWED_HOSTS", "localhost, 127.0.0.1").split(",")
+CSRF_TRUSTED_ORIGINS = [o for o in os.environ.get("BASIC_TRACKER_CSRF_TRUSTED_ORIGINS", "").split(",") if o]
 
 # Application definition
 
@@ -137,4 +144,4 @@ TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]
 
 LOGIN_REDIRECT_URL = "leaderboard:home"
 LOGOUT_REDIRECT_URL = "login"
-TIME_ZONE = "Asia/Kolkata"   # so "today" and dates match your clock
+TIME_ZONE = "Asia/Kolkata"
