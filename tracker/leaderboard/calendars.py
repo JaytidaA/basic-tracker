@@ -4,11 +4,19 @@ from datetime import date
 from django.utils import timezone
 
 
-def elimination_calendar(tracking, entries):
+def elimination_calendar(tracking, entries, viewer=None):
     """One dict per month; each cell holds the entries (eliminations) on that local day."""
     by_day = {}
     for e in entries:
         by_day.setdefault(timezone.localtime(e.occurred_at).date(), []).append(e)
+
+    today = timezone.localdate()
+    viewer_out = None
+    if viewer is not None:
+        viewer_out = min(
+            (d for d, es in by_day.items() if any(e.user_id == viewer.id for e in es)),
+            default = None
+        )
 
     start = tracking.start_date
     end = tracking.end_date or date(
@@ -27,6 +35,12 @@ def elimination_calendar(tracking, entries):
                     "in_month": d.month == m,
                     "in_range": start <= d <= end,
                     "entries": by_day.get(d, []),
+                    "survived": (
+                        start <= d <= end
+                        and d <= today
+                        and (viewer_out is None or d < viewer_out)
+                        and d not in by_day
+                    ),
                 }
                 for d in week
             ]

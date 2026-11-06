@@ -22,7 +22,7 @@ def detail(request, pk):
         ctx.update(
             standing=[u for u in rows if u.out_at is None],
             out=[u for u in rows if u.out_at is not None],
-            months=elimination_calendar(tracking, entries),
+            months=elimination_calendar(tracking, entries, request.user),
         )
     else:
         ctx.update(rows=rows, entries=tracking.entries.select_related("user")[:50])

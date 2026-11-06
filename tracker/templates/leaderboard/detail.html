@@ -16,6 +16,7 @@
   .day { position: relative; aspect-ratio: 1; background: #fff; border: 1px solid #ccc;
          border-radius: 4px; padding: .25rem; font-size: .8rem; }
   .day.off { background: #f3f3f3; color: #aaa; border-color: #eee; }
+  .day.ok  { background: #bfe8b0; color: default; border-color: #8fcf7a; }
   .day.hit { background: #6b2d1f; border-color: #6b2d1f; color: #fff; cursor: default; }
   .tip { display: none; position: absolute; z-index: 10; bottom: 105%; left: 50%;
          transform: translateX(-50%); width: 14rem; background: #222; color: #fff;
@@ -41,7 +42,7 @@
           {% for cell in week %}
             <td>
               {% if cell.in_month %}
-                <div class="day col-{{ forloop.counter }}{% if not cell.in_range %} off{% endif %}{% if cell.entries %} hit{% endif %}"
+			    <div class="day col-{{ forloop.counter }}{% if not cell.in_range %} off{% endif %}{% if cell.survived %} ok{% endif %}{% if cell.entries %} hit{% endif %}"
                      {% if cell.entries %}tabindex="0"{% endif %}>
                   {{ cell.date.day }}
                   {% if cell.entries %}
